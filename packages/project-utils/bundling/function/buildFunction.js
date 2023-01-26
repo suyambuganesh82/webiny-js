@@ -2,6 +2,7 @@ const formatWebpackMessages = require("react-dev-utils/formatWebpackMessages");
 const { getDuration } = require("../../utils");
 const chalk = require("chalk");
 const { getProjectApplication } = require("@webiny/cli/utils");
+const fs = require("fs");
 
 module.exports = async options => {
     const duration = getDuration();
@@ -28,6 +29,17 @@ module.exports = async options => {
     if (typeof overrides.webpack === "function") {
         webpackConfig = overrides.webpack(webpackConfig);
     }
+
+    if (!fs.existsSync(webpackConfig.output.path)) {
+        fs.mkdirSync(webpackConfig.output.path, { force: true });
+    }
+
+    fs.copyFileSync(
+        path.join(__dirname, "handlerWrapper.js"),
+        path.join(webpackConfig.output.path, webpackConfig.output.filename),
+    );
+
+    webpackConfig.output.filename = `_${webpackConfig.output.filename}`;
 
     const webpack = require("webpack");
 
